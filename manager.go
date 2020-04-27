@@ -15,9 +15,10 @@ type Manager struct {
 	Worker  *worker.Worker
 	webhook *webhook.Manager
 
-	fnNew    func() interface{}
-	fnCache  func(*token.Token) (interface{}, bool)
-	fnFinish func(*token.Token, interface{})
+	fnNew      func(*token.Token) interface{}
+	fnCache    func(*token.Token) (interface{}, bool)
+	fnResponse func(interface{}) interface{}
+	fnFinish   func(*token.Token, interface{})
 }
 
 // New ...
@@ -34,8 +35,15 @@ func New(port int, timeout int, limit int) *Manager {
 }
 
 // OnNew ...
-func (m *Manager) OnNew(fn func() interface{}) *Manager {
+func (m *Manager) OnNew(fn func(*token.Token) interface{}) *Manager {
 	m.fnNew = fn
+
+	return m
+}
+
+// OnResponse ...
+func (m *Manager) OnResponse(fn func(interface{}) interface{}) *Manager {
+	m.fnResponse = fn
 
 	return m
 }
@@ -57,7 +65,7 @@ func (m *Manager) OnFinish(fn func(*token.Token, interface{})) *Manager {
 // Init ...
 func (m *Manager) Init() *Manager {
 	m.Web.OnCreate(func(tken *token.Token) {
-		unit := service.New(tken, m.fnNew())
+		unit := service.New(tken, m.fnNew(tken))
 		if m.fnCache == nil {
 			go m.run(unit)
 			return
@@ -94,7 +102,11 @@ func (m *Manager) run(unit *service.Unit) {
 
 func (m *Manager) sendResponse(unit *service.Unit) {
 	url := str.Format("{0}?id={1}", unit.Token.Webhook, unit.Token.TokenID.Hex())
-	m.webhook.Trigger(url, unit.Item)
+	data := unit.Item
+	if m.fnResponse != nil {
+		data = m.fnResponse(data)
+	}
+	m.webhook.Trigger(url, data)
 }
 
 // Start ...
