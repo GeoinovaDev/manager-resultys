@@ -16,6 +16,7 @@ type Interface struct {
 	fnIndex  func() string
 	fnCreate func(*token.Token)
 	fnReload func()
+	fnDebug  func() string
 }
 
 // New ...
@@ -51,6 +52,13 @@ func (in *Interface) OnReload(fn func()) *Interface {
 	return in
 }
 
+// OnDebug ...
+func (in *Interface) OnDebug(fn func() string) *Interface {
+	in.fnDebug = fn
+
+	return in
+}
+
 // Start ...
 func (in *Interface) Start() {
 	server.OnGet("/", func(qs server.QueryString) string {
@@ -73,6 +81,10 @@ func (in *Interface) Start() {
 		in.fnReload()
 
 		return "ok"
+	})
+
+	server.OnGet("/debug", func(qs server.QueryString) string {
+		return in.fnDebug()
 	})
 
 	server.Port = ":" + strconv.Itoa(in.port)

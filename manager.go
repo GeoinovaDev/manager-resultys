@@ -1,6 +1,9 @@
 package manager
 
 import (
+	"strings"
+
+	"git.resultys.com.br/lib/lower/convert/encode"
 	"git.resultys.com.br/lib/lower/str"
 	"git.resultys.com.br/motor/manager/web"
 	"git.resultys.com.br/motor/models/token"
@@ -71,14 +74,25 @@ func (m *Manager) Init() *Manager {
 			return
 		}
 
-		cache, loaded := m.fnCache(tken)
+		cache, existCache := m.fnCache(tken)
 
-		if !loaded {
-			m.run(unit)
-		} else {
+		if existCache {
 			unit.Item = cache
 			m.sendResponse(unit)
+		} else {
+			m.run(unit)
 		}
+	})
+
+	m.Web.OnDebug(func() string {
+		str := []string{}
+		units := m.Worker.Running()
+
+		for i := 0; i < len(units); i++ {
+			str = append(str, encode.JSON(units[i]))
+		}
+
+		return strings.Join(str, "\n")
 	})
 
 	m.Web.OnReload(func() {
