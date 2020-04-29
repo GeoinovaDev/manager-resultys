@@ -59,10 +59,12 @@ func (in *Interface) Start() {
 
 	server.OnPost("/create", func(qs server.QueryString, data string) string {
 		token := token.New()
-		decode.JSON(data, token)
-		token.RenewID()
 
-		in.fnCreate(token)
+		if len(data) > 0 {
+			decode.JSON(data, token)
+			token.RenewID()
+			go in.fnCreate(token)
+		}
 
 		return net.Success(token)
 	})

@@ -67,17 +67,17 @@ func (m *Manager) Init() *Manager {
 	m.Web.OnCreate(func(tken *token.Token) {
 		unit := service.New(tken, m.fnNew(tken))
 		if m.fnCache == nil {
-			go m.run(unit)
+			m.run(unit)
 			return
 		}
 
 		cache, loaded := m.fnCache(tken)
 
 		if !loaded {
-			go m.run(unit)
+			m.run(unit)
 		} else {
 			unit.Item = cache
-			go m.sendResponse(unit)
+			m.sendResponse(unit)
 		}
 	})
 
