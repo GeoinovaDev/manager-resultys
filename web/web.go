@@ -70,7 +70,6 @@ func (in *Interface) Start() {
 
 		if len(data) > 0 {
 			decode.JSON(data, token)
-			token.RenewID()
 			go in.fnCreate(token)
 		}
 

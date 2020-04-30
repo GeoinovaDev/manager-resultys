@@ -108,7 +108,7 @@ func (m *Manager) run(unit *service.Unit) {
 }
 
 func (m *Manager) sendResponse(unit *service.Unit) {
-	url := str.Format("{0}?id={1}", unit.Token.Webhook, unit.Token.TokenID.Hex())
+	url := str.Format("{0}?id={1}", unit.Token.Webhook, unit.Token.WebhookID)
 	data := unit.Item
 	if m.fnResponse != nil {
 		data = m.fnResponse(data)
