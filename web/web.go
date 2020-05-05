@@ -17,6 +17,7 @@ type Interface struct {
 	fnCreate func(*token.Token)
 	fnReload func()
 	fnDebug  func() string
+	fnStats  func() string
 }
 
 // New ...
@@ -59,6 +60,13 @@ func (in *Interface) OnDebug(fn func() string) *Interface {
 	return in
 }
 
+// OnStats ...
+func (in *Interface) OnStats(fn func() string) *Interface {
+	in.fnStats = fn
+
+	return in
+}
+
 // Start ...
 func (in *Interface) Start() {
 	server.OnGet("/", func(qs server.QueryString) string {
@@ -80,6 +88,10 @@ func (in *Interface) Start() {
 		in.fnReload()
 
 		return "ok"
+	})
+
+	server.OnGet("/stats", func(qs server.QueryString) string {
+		return in.fnStats()
 	})
 
 	server.OnGet("/debug", func(qs server.QueryString) string {

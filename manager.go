@@ -1,6 +1,8 @@
 package manager
 
 import (
+	"runtime"
+
 	"git.resultys.com.br/lib/lower/convert/encode"
 	"git.resultys.com.br/lib/lower/str"
 	"git.resultys.com.br/motor/manager/web"
@@ -82,10 +84,20 @@ func (m *Manager) Init() *Manager {
 		}
 	})
 
-	m.Web.OnDebug(func() string {
-		units := m.Worker.Running()
+	m.Web.OnStats(func() string {
+		json := make(map[string]interface{})
+		json["units"] = m.Worker.Running()
 
-		return encode.JSON(units)
+		var mem runtime.MemStats
+		runtime.ReadMemStats(&mem)
+		json["mem_alloc"] = mem.Alloc / 1024 / 1024
+		json["mem_sys"] = mem.Sys / 1024 / 1024
+
+		return encode.JSON(json)
+	})
+
+	m.Web.OnDebug(func() string {
+		return ""
 	})
 
 	m.Web.OnReload(func() {
