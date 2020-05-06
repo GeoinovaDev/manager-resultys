@@ -15,6 +15,7 @@ type Interface struct {
 
 	fnIndex  func() string
 	fnCreate func(*token.Token)
+	fnRemove func(string)
 	fnReload func()
 	fnDebug  func() string
 	fnStats  func() string
@@ -42,6 +43,13 @@ func (in *Interface) OnIndex(fn func() string) *Interface {
 // OnCreate ...
 func (in *Interface) OnCreate(fn func(*token.Token)) *Interface {
 	in.fnCreate = fn
+
+	return in
+}
+
+// OnRemove ...
+func (in *Interface) OnRemove(fn func(string)) *Interface {
+	in.fnRemove = fn
 
 	return in
 }
@@ -75,13 +83,21 @@ func (in *Interface) Start() {
 
 	server.OnPost("/create", func(qs server.QueryString, data string) string {
 		token := token.New()
+		id := token.TokenID
 
 		if len(data) > 0 {
 			decode.JSON(data, token)
+			token.TokenID = id
 			go in.fnCreate(token)
 		}
 
 		return net.Success(token)
+	})
+
+	server.OnGet("/remove", func(qs server.QueryString) string {
+		in.fnRemove(qs.Get("id"))
+
+		return net.Success(nil)
 	})
 
 	server.OnGet("/reload", func(qs server.QueryString) string {

@@ -18,6 +18,8 @@ type Manager struct {
 	Worker  *worker.Worker
 	webhook *webhook.Manager
 
+	waitQueue *queue
+
 	fnNew      func(*token.Token) interface{}
 	fnCache    func(*token.Token) (interface{}, bool)
 	fnResponse func(interface{}) interface{}
@@ -27,13 +29,20 @@ type Manager struct {
 // New ...
 func New(port int, timeout int, limit int) *Manager {
 	m := &Manager{
-		Web:     web.New(port),
-		Worker:  worker.New(timeout),
-		webhook: webhook.New(limit),
+		Web:       web.New(port),
+		Worker:    worker.New(timeout),
+		webhook:   webhook.New(limit),
+		waitQueue: createQueue(),
 	}
 
 	m.Init()
 
+	return m
+}
+
+// Capacity ...
+func (m *Manager) Capacity(total int) *Manager {
+	m.waitQueue.capacity(total)
 	return m
 }
 
@@ -84,9 +93,14 @@ func (m *Manager) Init() *Manager {
 		}
 	})
 
+	m.Web.OnRemove(func(id string) {
+		m.waitQueue.removeByTokenID(id)
+	})
+
 	m.Web.OnStats(func() string {
 		json := make(map[string]interface{})
-		json["units"] = m.Worker.Running()
+		json["running"] = m.Worker.Running()
+		json["waiting"] = m.waitQueue.items
 
 		var mem runtime.MemStats
 		runtime.ReadMemStats(&mem)
@@ -97,7 +111,9 @@ func (m *Manager) Init() *Manager {
 	})
 
 	m.Web.OnDebug(func() string {
-		return ""
+		units := m.Worker.Running()
+
+		return encode.JSON(units)
 	})
 
 	m.Web.OnReload(func() {
@@ -108,10 +124,20 @@ func (m *Manager) Init() *Manager {
 }
 
 func (m *Manager) run(unit *service.Unit) {
+	if unit == nil {
+		return
+	}
+
+	if m.waitQueue.push(unit) {
+		return
+	}
+
 	m.Worker.Run(unit, func(unit *service.Unit) {
 		if m.fnFinish != nil {
 			m.fnFinish(unit.Token, unit.Item)
 		}
+
+		go m.run(m.waitQueue.pop())
 	}, func(unit *service.Unit) {
 		m.sendResponse(unit)
 	}, func(unit *service.Unit) {
@@ -120,7 +146,7 @@ func (m *Manager) run(unit *service.Unit) {
 }
 
 func (m *Manager) sendResponse(unit *service.Unit) {
-	url := str.Format("{0}?id={1}", unit.Token.Webhook, unit.Token.WebhookID)
+	url := str.Format("{0}?id={1}", unit.Token.Webhook, unit.Token.TokenID.Hex())
 	data := unit.Item
 	if m.fnResponse != nil {
 		data = m.fnResponse(data)
