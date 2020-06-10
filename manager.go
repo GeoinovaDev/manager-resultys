@@ -136,8 +136,6 @@ func (m *Manager) run(unit *service.Unit) {
 		if m.fnFinish != nil {
 			m.fnFinish(unit.Token, unit.Item)
 		}
-
-		go m.run(m.waitQueue.pop())
 	}, func(unit *service.Unit) {
 		m.sendResponse(unit)
 	}, func(unit *service.Unit) {
@@ -151,7 +149,7 @@ func (m *Manager) sendResponse(unit *service.Unit) {
 	if m.fnResponse != nil {
 		data = m.fnResponse(data)
 	}
-	m.webhook.Trigger(url, data)
+	go m.webhook.Trigger(url, data)
 }
 
 // Start ...
