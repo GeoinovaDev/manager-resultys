@@ -68,6 +68,19 @@ func (in *Interface) OnDebug(fn func() string) *Interface {
 	return in
 }
 
+// OnGet ...
+func (in *Interface) OnGet(route string, fn func(qs server.QueryString) string) *Interface {
+	server.OnGet(route, fn)
+
+	return in
+}
+
+func (in *Interface) OnPost(route string, fn func(qs server.QueryString, data string) string) *Interface {
+	server.OnPost(route, fn)
+
+	return in
+}
+
 // OnStats ...
 func (in *Interface) OnStats(fn func() string) *Interface {
 	in.fnStats = fn
