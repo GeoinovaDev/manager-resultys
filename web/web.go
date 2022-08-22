@@ -6,7 +6,7 @@ import (
 	"github.com/GeoinovaDev/lower-resultys/convert/decode"
 	"github.com/GeoinovaDev/lower-resultys/net"
 	"github.com/GeoinovaDev/lower-resultys/server"
-	"git.resultys.com.br/motor/models/token"
+	"github.com/GeoinovaDev/models-resultys/token"
 )
 
 // Interface struct

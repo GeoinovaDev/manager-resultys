@@ -3,7 +3,7 @@ package manager
 import (
 	"sync"
 
-	"git.resultys.com.br/motor/service"
+	"github.com/GeoinovaDev/service-resultys"
 )
 
 type queue struct {
