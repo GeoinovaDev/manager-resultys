@@ -3,13 +3,13 @@ package manager
 import (
 	"runtime"
 
-	"git.resultys.com.br/lib/lower/convert/encode"
-	"git.resultys.com.br/lib/lower/str"
-	"git.resultys.com.br/motor/manager/web"
-	"git.resultys.com.br/motor/models/token"
-	"git.resultys.com.br/motor/service"
-	"git.resultys.com.br/motor/webhook"
-	"git.resultys.com.br/motor/worker"
+	"github.com/GeoinovaDev/lower-resultys/convert/encode"
+	"github.com/GeoinovaDev/lower-resultys/str"
+	"github.com/GeoinovaDev/manager-resultys/web"
+	"github.com/GeoinovaDev/models-resultys/token"
+	"github.com/GeoinovaDev/service-resultys"
+	"github.com/GeoinovaDev/webhook-resultys"
+	"github.com/GeoinovaDev/worker-resultys"
 )
 
 // Manager ...

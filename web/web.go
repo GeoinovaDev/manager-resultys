@@ -3,9 +3,9 @@ package web
 import (
 	"strconv"
 
-	"git.resultys.com.br/lib/lower/convert/decode"
-	"git.resultys.com.br/lib/lower/net"
-	"git.resultys.com.br/lib/lower/server"
+	"github.com/GeoinovaDev/lower-resultys/convert/decode"
+	"github.com/GeoinovaDev/lower-resultys/net"
+	"github.com/GeoinovaDev/lower-resultys/server"
 	"git.resultys.com.br/motor/models/token"
 )
 
